@@ -1,54 +1,64 @@
 ;
-; A simple boot sector program.
+; Boot sector program.
 ;
-bits 16
+BITS 16
 
 org 7C00h
 
-message db 'First level bootloader MW-OS starts...',0
+;--------------------------------;
+; ENTRY POINT                    ;
+;--------------------------------;
+start:                           ;
+  cli                            ; we forbid interrupting
+;--------------------------------;
+; INITIALIZING REGISTERS         ;
+;--------------------------------;
+  xor ax, ax                     ; xor is cheaper than mov
+  mov ds, ax                     ;
+  mov es, ax                     ;
+  mov ss, ax                     ;
+  mov sp, 07C00h                 ;
+;--------------------------------;
+  sti                            ; returning the ability to handle interrupts
+;--------------------------------;
+; CLEAR THE DISPLAY              ;
+;--------------------------------;
+  mov ax, 3                      ;
+  int 10h                        ;
+  mov ah, 2h                     ;
+  mov dh, 0                      ;
+  mov dl, 0                      ;
+  xor bh, bh                     ;
+  int 10h                        ;
+;--------------------------------;
+; DISABLING THE CURSOR           ;
+;--------------------------------;
+  mov ah, 1                      ;
+  mov ch, 0x20                   ;
+  int 0x10                       ;
+;--------------------------------;
+; we will display a message about;
+; starting the loader            ;
+;--------------------------------;
+  mov bp, start_message          ;
+  mov cx, 38                     ; number of characters per line
+  call print_greetings           ;
+;--------------------------------;
 
-;---------------------------;
-start:                      ;
-    call init_loader        ;
-    call fill_display       ;
-    call print_greetings    ;
-    fill_area               ;
-    jmp $                   ;
-;---------------------------;
+jmp $
 
-;---------------------------;
-init_loader:                ;
-    cli                     ;
-    xor ax, ax              ;
-    mov ds, ax              ;
-    mov es, ax              ;
-    mov ss, ax              ;
-    mov sp, 07C00h          ;
-    sti                     ;
-    ret                     ;
-;---------------------------;
+;--------------------------------;
+print_greetings:                 ;
+    mov ax, 1301h                ;
+    mov bl, 02h                  ; первый 4 бита цвет фона, вторые текста
+    int 10h                      ;
+    ret                          ;
+;--------------------------------;
 
-;---------------------------;
-fill_display:               ;
-    mov ax, 3               ;
-    int 10h                 ;
-    mov ah, 2h              ;
-    mov dh, 0               ;
-    mov dl, 0               ;
-    xor bh, bh              ;
-    int 10h                 ;
-    ret                     ;
-;---------------------------;
 
-;---------------------------;
-print_greetings:            ;
-    mov ax, 1301h           ;
-    mov bp, message         ;
-    mov cx, 12              ;
-    mov bl, 02h             ;
-    int 10h                 ;
-    ret                     ;
-;---------------------------;
+
+start_message db 'First level bootloader MW-OS starts...', 0
+start_loading_message db 'The OS has started loading...', 0
 
 ;---------------------------;
 times 510-($-$$) db 0       ;

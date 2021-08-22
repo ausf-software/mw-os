@@ -42,13 +42,19 @@ start:                           ;
 ;--------------------------------;
   mov bp, start_message          ;
   mov cx, 38                     ; number of characters per line
-  call print_greetings           ;
+  call print_message             ;
 ;--------------------------------;
+  mov bx, start_loading_message  ;
+  mov cx 31                      ;
+  call print_message             ;
+  ;------------------------------;
 
 jmp $
 
 ;--------------------------------;
-print_greetings:                 ;
+; 
+;--------------------------------;
+print_message:                   ;
     mov ax, 1301h                ;
     mov bl, 02h                  ; первый 4 бита цвет фона, вторые текста
     int 10h                      ;
@@ -56,9 +62,8 @@ print_greetings:                 ;
 ;--------------------------------;
 
 
-
 start_message db 'First level bootloader MW-OS starts...', 0
-start_loading_message db 'The OS has started loading...', 0
+start_loading_message db 13, 10 'The OS has started loading...', 0
 
 ;---------------------------;
 times 510-($-$$) db 0       ;

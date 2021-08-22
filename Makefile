@@ -9,6 +9,7 @@ create_iso_last:
 	make create_iso
 
 create_floppy:
+	make compile_boot
 	rm floppy.img
 	mkdosfs -C floppy.img 1440
 	dd conv=notrunc if=bin/boot_loader.bin of=floppy.img

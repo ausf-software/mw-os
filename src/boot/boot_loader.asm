@@ -37,34 +37,83 @@ start:                           ;
   mov ch, 0x20                   ;
   int 0x10                       ;
 ;--------------------------------;
-; we will display a message about;
-; starting the loader            ;
+; WE WILL DISPLAY A MESSAGE ABOUT;
+; STARTING THE LOADER            ;
 ;--------------------------------;
-  mov bp, start_message          ;
-  mov cx, 38                     ; number of characters per line
+  mov bx, start_message          ;
   call print_message             ;
 ;--------------------------------;
   mov bx, start_loading_message  ;
-  mov cx 31                      ;
   call print_message             ;
-  ;------------------------------;
+;--------------------------------;
 
 jmp $
 
 ;--------------------------------;
-; 
+; PRINT A LINE ON THE SCREEN     ;
 ;--------------------------------;
 print_message:                   ;
-    mov ax, 1301h                ;
-    mov bl, 02h                  ; первый 4 бита цвет фона, вторые текста
+  pusha                          ;
+;--------------------------------;
+; PRINTING CHARACTERS            ;
+;--------------------------------;
+  start_print:                   ;
+;--------------------------------;
+; checking whether all characters;
+; are displayed on the screen    ;
+;--------------------------------;
+    mov al, [bx]                 ;
+    cmp al, 0                    ;
+    je done_programm             ;
+;--------------------------------;
+; PRINTING CHARACTER             ;
+;--------------------------------;
+    mov ah, 0x0e                 ;
     int 10h                      ;
+;--------------------------------;
+;  CHARACTER PRINTING CYCLE      ;
+;--------------------------------;
+    add bx, 1                    ;
+    jmp start_print              ;
+;--------------------------------;
+; STOPPING PRINTING A LINE       ;
+;--------------------------------;
+  done_programm:                 ;
+    popa                         ;
+    call print_new_line          ;
     ret                          ;
 ;--------------------------------;
+; MOVING FOR NEW LINE            ;
+;--------------------------------;
+print_new_line:                  ;
+  pusha                          ;
+;--------------------------------;
+; PRINTING A LINE BREAK CHARACTER;
+;--------------------------------;
+  mov ah, 0x0e                   ;
+  mov al, 0x0a                   ;
+  int 10h                        ;
+;--------------------------------;
+; MOVING THE CURSOR              ;
+;--------------------------------;
+  mov al, 0x0d                   ;
+  int 10h                        ;
+;--------------------------------;
+  popa                           ;
+  ret                            ;
+;--------------------------------;
 
+;--------------------------------------------------------;
+;                          DATA                          ;
+;--------------------------------------------------------;
+start_message:                                           ;
+  db 'First level bootloader MW-OS starts...', 0         ;
+start_loading_message:                                   ;
+  db  'The OS has started loading...', 0                 ;
+;--------------------------------------------------------;
 
-start_message db 'First level bootloader MW-OS starts...', 0
-start_loading_message db 13, 10 'The OS has started loading...', 0
-
+;---------------------------;
+; SECTOR ALIGNMENT          ;
 ;---------------------------;
 times 510-($-$$) db 0       ;
 dw 0xaa55                   ;
